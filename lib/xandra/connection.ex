@@ -45,7 +45,7 @@ defmodule Xandra.Connection do
         {:ok, prepared, state}
       :error ->
         payload =
-          Frame.new(:prepare)
+          Frame.new(:prepare, tracing: Keyword.get(options, :tracing, false))
           |> Protocol.encode_request(prepared)
           |> Frame.encode(compressor)
 

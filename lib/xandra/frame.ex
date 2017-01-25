@@ -30,9 +30,9 @@ defmodule Xandra.Frame do
     0x08 => :result,
   }
 
-  @spec new(kind) :: t(kind) when kind: var
-  def new(kind) do
-    %__MODULE__{kind: kind}
+  @spec new(kind, Keyword.t) :: t(kind) when kind: var
+  def new(kind, options \\ []) do
+    struct!(__MODULE__, Keyword.put(options, :kind, kind))
   end
 
   @spec header_length() :: 9
@@ -57,14 +57,23 @@ defmodule Xandra.Frame do
       when is_binary(body) and is_atom(compressor) do
     <<@response_version, flags, _stream_id::16, opcode, _::32>> = header
     kind = Map.fetch!(@response_opcodes, opcode)
+
     body = maybe_decompress_body(flag_set?(flags, _compression = 0x01), compressor, body)
+    body =
+      if flag_set?(flags, _tracing = 0x02) do
+        <<_trace_id::16-bytes>> <> body = body
+        body
+      else
+        body
+      end
+
     %__MODULE__{kind: kind, body: body}
   end
 
-  defp encode_flags(nil, false), do: 0x00
-  defp encode_flags(nil, true), do: 0x02
-  defp encode_flags(_, false), do: 0x01
-  defp encode_flags(_, true), do: 0x03
+  defp encode_flags(_compressor = nil, _tracing? = false), do: 0x00
+  defp encode_flags(_compressor = nil, _tracing? = true), do: 0x02
+  defp encode_flags(_compressor = _, _tracing? = false), do: 0x01
+  defp encode_flags(_compressor = _, _tracing? = true), do: 0x03
 
   defp flag_set?(flags, flag) do
     (flags &&& flag) == flag

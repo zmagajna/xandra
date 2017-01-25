@@ -291,6 +291,10 @@ defmodule Xandra.Protocol do
     encode_value(:bigint, timestamp)
   end
 
+  defp encode_value(:uuid, <<_::16-bytes>> = uuid) do
+    uuid
+  end
+
   defp encode_value(:uuid, uuid) when is_binary(uuid) do
     <<part1::8-bytes, ?-,
       part2::4-bytes, ?-,

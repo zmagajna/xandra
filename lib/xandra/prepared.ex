@@ -21,7 +21,7 @@ defmodule Xandra.Prepared do
     end
 
     def encode(prepared, values, options) do
-      Frame.new(:execute)
+      Frame.new(:execute, tracing: Keyword.get(options, :tracing, false))
       |> Protocol.encode_request(%{prepared | values: values}, options)
       |> Frame.encode(options[:compressor])
     end
