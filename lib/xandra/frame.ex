@@ -61,6 +61,7 @@ defmodule Xandra.Frame do
     body = maybe_decompress_body(flag_set?(flags, _compression = 0x01), compressor, body)
     body =
       if flag_set?(flags, _tracing = 0x02) do
+        # SELECT * FROM system_traces.sessions WHERE session_id = ?
         <<_trace_id::16-bytes>> <> body = body
         body
       else
