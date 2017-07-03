@@ -114,7 +114,7 @@ defmodule Xandra.Connection do
   end
 
   defp upgrade_protocol(handler, options) do
-    case Utils.upgrade_protocol(handler, Keyword.get(options, :encryption, false)) do
+    case Utils.upgrade_protocol(handler, Keyword.fetch!(options, :encryption)) do
       {:ok, handler} ->
         {:ok, handler}
       {:error, reason} ->

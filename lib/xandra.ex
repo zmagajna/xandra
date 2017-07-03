@@ -166,6 +166,7 @@ defmodule Xandra do
   @default_start_options [
     nodes: ["127.0.0.1"],
     idle_timeout: 30_000,
+    encryption: false,
   ]
 
   @doc """

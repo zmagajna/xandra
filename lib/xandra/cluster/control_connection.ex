@@ -90,7 +90,7 @@ defmodule Xandra.Cluster.ControlConnection do
   end
 
   defp upgrade_protocol(handler, options) do
-    Utils.upgrade_protocol(handler, Keyword.get(options, :encryption, false))
+    Utils.upgrade_protocol(handler, Keyword.fetch!(options, :encryption))
   end
 
   defp startup_connection(handler, supported_options, options) do
