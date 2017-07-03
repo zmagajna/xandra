@@ -6,10 +6,12 @@ defmodule Xandra.Connection do
   alias Xandra.{ConnectionError, Prepared, Frame, Protocol}
   alias __MODULE__.Utils
 
+  @type handler :: {:gen_tcp, :gen_tcp.socket} | {:ssl, :ssl.sslsocket}
+
   @default_timeout 5_000
   @default_socket_options [packet: :raw, mode: :binary, active: false]
 
-  defstruct [:socket, :prepared_cache, :compressor]
+  defstruct [:handler, :prepared_cache, :compressor]
 
   def connect(options) do
     address = Keyword.fetch!(options, :address)
@@ -17,12 +19,17 @@ defmodule Xandra.Connection do
     prepared_cache = Keyword.fetch!(options, :prepared_cache)
     compressor = Keyword.get(options, :compressor)
 
-    case :gen_tcp.connect(address, port, @default_socket_options, @default_timeout) do
-      {:ok, socket} ->
-        state = %__MODULE__{socket: socket, prepared_cache: prepared_cache, compressor: compressor}
-        with {:ok, supported_options} <- Utils.request_options(socket),
-             :ok <- startup_connection(socket, supported_options, compressor, options) do
-          {:ok, state}
+    case Utils.connect(address, port, @default_socket_options, @default_timeout) do
+      {:ok, handler} ->
+        state = %__MODULE__{
+          handler: handler,
+          prepared_cache: prepared_cache,
+          compressor: compressor
+        }
+        with {:ok, handler} <- upgrade_protocol(handler, options),
+             {:ok, supported_options} <- Utils.request_options(handler),
+             :ok <- startup_connection(handler, supported_options, compressor, options) do
+          {:ok, %{state | handler: handler}}
         else
           {:error, reason} = error ->
             disconnect(reason, state)
@@ -41,7 +48,7 @@ defmodule Xandra.Connection do
     {:ok, state}
   end
 
-  def handle_prepare(%Prepared{} = prepared, options, %__MODULE__{socket: socket} = state) do
+  def handle_prepare(%Prepared{} = prepared, options, %__MODULE__{handler: handler} = state) do
     force? = Keyword.get(options, :force, false)
     compressor = assert_valid_compressor(state.compressor, options[:compressor])
 
@@ -54,8 +61,8 @@ defmodule Xandra.Connection do
           |> Protocol.encode_request(prepared)
           |> Frame.encode(compressor)
 
-        with :ok <- :gen_tcp.send(socket, payload),
-             {:ok, %Frame{} = frame} <- Utils.recv_frame(socket, state.compressor),
+        with :ok <- Utils.send(handler, payload),
+             {:ok, %Frame{} = frame} <- Utils.recv_frame(handler, state.compressor),
              %Prepared{} = prepared <- Protocol.decode_response(frame, prepared) do
           Prepared.Cache.insert(state.prepared_cache, prepared)
           {:ok, prepared, state}
@@ -69,10 +76,10 @@ defmodule Xandra.Connection do
   end
 
   def handle_execute(_query, payload, options, %__MODULE__{} = state) do
-    %{socket: socket, compressor: compressor} = state
+    %{handler: handler, compressor: compressor, handler: handler} = state
     assert_valid_compressor(compressor, options[:compressor])
-    with :ok <- :gen_tcp.send(socket, payload),
-        {:ok, %Frame{} = frame} <- Utils.recv_frame(socket, compressor) do
+    with :ok <- Utils.send(handler, payload),
+        {:ok, %Frame{} = frame} <- Utils.recv_frame(handler, compressor) do
       {:ok, frame, state}
     else
       {:error, reason} ->
@@ -84,12 +91,12 @@ defmodule Xandra.Connection do
     {:ok, query, state}
   end
 
-  def disconnect(_exception, %__MODULE__{socket: socket}) do
-    :ok = :gen_tcp.close(socket)
+  def disconnect(_exception, %__MODULE__{handler: handler}) do
+    :ok = Utils.close(handler)
   end
 
-  def ping(%__MODULE__{socket: socket} = state) do
-    case Utils.request_options(socket) do
+  def ping(%__MODULE__{handler: handler} = state) do
+    case Utils.request_options(handler) do
       {:ok, _options} ->
         {:ok, state}
       {:error, %ConnectionError{reason: reason}} ->
@@ -106,7 +113,16 @@ defmodule Xandra.Connection do
     Prepared.Cache.lookup(state.prepared_cache, prepared)
   end
 
-  defp startup_connection(socket, supported_options, compressor, options) do
+  defp upgrade_protocol(handler, options) do
+    case Utils.upgrade_protocol(handler, Keyword.get(options, :encryption, false)) do
+      {:ok, handler} ->
+        {:ok, handler}
+      {:error, reason} ->
+        {:error, ConnectionError.new("upgrade protocol", reason)}
+    end
+  end
+
+  defp startup_connection(handler, supported_options, compressor, options) do
     %{"CQL_VERSION" => [cql_version | _],
       "COMPRESSION" => supported_compression_algorithms} = supported_options
 
@@ -116,12 +132,12 @@ defmodule Xandra.Connection do
       compression_algorithm = Atom.to_string(compressor.algorithm())
       if compression_algorithm in supported_compression_algorithms do
         requested_options = Map.put(requested_options, "COMPRESSION", compression_algorithm)
-        Utils.startup_connection(socket, requested_options, compressor, options)
+        Utils.startup_connection(handler, requested_options, compressor, options)
       else
         {:error, ConnectionError.new("startup connection", {:unsupported_compression, compressor.algorithm()})}
       end
     else
-      Utils.startup_connection(socket, requested_options, compressor, options)
+      Utils.startup_connection(handler, requested_options, compressor, options)
     end
   end
 
