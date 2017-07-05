@@ -99,7 +99,7 @@ defmodule Xandra.Connection.Utils do
   def upgrade_protocol(handler, false), do: {:ok, handler}
   def upgrade_protocol(handler, true), do: upgrade_protocol(handler, [])
   def upgrade_protocol({:gen_tcp, socket}, options) when is_list(options) do
-    with {:ok, socket} <- :ssl.connect(socket, options) do
+    with {:ok, socket} <- :ssl.connect(socket, options, 5_000) do
       {:ok, {:ssl, socket}}
     end
   end

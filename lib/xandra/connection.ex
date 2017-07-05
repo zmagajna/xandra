@@ -19,17 +19,17 @@ defmodule Xandra.Connection do
     prepared_cache = Keyword.fetch!(options, :prepared_cache)
     compressor = Keyword.get(options, :compressor)
 
-    case Utils.connect(address, port, @default_socket_options, @default_timeout) do
+    case Utils.connect(address, port, @default_socket_options, @default_timeout) |> IO.inspect do
       {:ok, handler} ->
         state = %__MODULE__{
           handler: handler,
           prepared_cache: prepared_cache,
           compressor: compressor
         }
-        with {:ok, handler} <- upgrade_protocol(handler, options),
-             {:ok, supported_options} <- Utils.request_options(handler),
-             :ok <- startup_connection(handler, supported_options, compressor, options) do
-          {:ok, %{state | handler: handler}}
+        with {:ok, handler} <- upgrade_protocol(handler, options) |> IO.inspect,
+             {:ok, supported_options} <- Utils.request_options(handler) |> IO.inspect,
+             :ok <- startup_connection(handler, supported_options, compressor, options) |> IO.inspect do
+          {:ok, %{state | handler: handler}} |> IO.inspect
         else
           {:error, reason} = error ->
             disconnect(reason, state)
