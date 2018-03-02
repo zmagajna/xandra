@@ -874,6 +874,27 @@ defmodule Xandra.Protocol do
     {:inet, buffer}
   end
 
+  # ScyllaDB spacific decoding https://github.com/scylladb/scylla-tools-java/blob/master/src/java/org/apache/cassandra/transport/DataType.java#L35
+  # DATE (17, SimpleDateType.instance, 4),
+  defp decode_type(<<0x0011::16, buffer::bits>>) do
+    {:date, buffer}
+  end
+
+  # TIME (18, TimeType.instance, 4),
+  defp decode_type(<<0x0012::16, buffer::bits>>) do
+    {:time, buffer}
+  end
+
+  # SMALLINT (19, ShortType.instance, 4),
+  defp decode_type(<<0x0013::16, buffer::bits>>) do
+    {:smallint, buffer}
+  end
+
+  # BYTE (20, ByteType.instance, 4),
+  defp decode_type(<<0x0014::16, buffer::bits>>) do
+    {:tinyint, buffer}
+  end
+  
   defp decode_type(<<0x0020::16, buffer::bits>>) do
     {type, buffer} = decode_type(buffer)
     {{:list, [type]}, buffer}
