@@ -38,7 +38,8 @@ before_install:
      fi
      if [ $USE_SCYLLA = true ]; then
        sudo curl -o /etc/apt/sources.list.d/scylla.list -L http://repositories.scylladb.com/scylla/repo/77c7dfe41d1ef5dc59e939ca5fd01b32/ubuntu/scylladb-2.0-trusty.list
+       sudo apt-key update
        sudo apt-get -qq update
-       sudo apt-get install -y scylla-server
+       sudo apt-get install -y --allow-unauthenticated scylla-server
        sudo /usr/bin/scylla --options-file /etc/scylla/scylla.yaml ${SCYLLA_OPTS} ${SCYLLA_OPTS_LOG} &
      fi
