@@ -37,7 +37,7 @@ before_install:
        for try in {1..12}; do (nodetool version > /dev/null 2>&1 && break) || sleep 5; done
      fi
      if [ $USE_SCYLLA = true ]; then
-       echo "deb [arch=amd64] http://s3.amazonaws.com/downloads.scylladb.com/deb/ubuntu trusty scylladb-2.1/multiverse" | sudo tee -a /etc/apt/sources.list > /dev/null
+       echo "deb [arch=amd64] http://s3.amazonaws.com/downloads.scylladb.com/deb/ubuntu trusty scylladb-2.0/multiverse" | sudo tee -a /etc/apt/sources.list > /dev/null
        sudo apt-get -qq update
        sudo apt-get install -y --allow-unauthenticated scylla-server
        sudo /usr/bin/scylla --options-file /etc/scylla/scylla.yaml ${SCYLLA_OPTS} ${SCYLLA_OPTS_LOG} &
