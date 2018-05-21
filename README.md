@@ -91,7 +91,7 @@ page_stream
 
 Clone the repository and run `$ mix test` to make sure your setup is correct; you're going to need Cassandra running locally on its default port (`9042`) for tests to pass.
 
-NOTE: If you are trying to test repositoy on [ScyllaDB](https://www.scylladb.com/), you also need to add to your enviroment `$ export USE_SCYLLA=true`, or the test that are spacific to Cassandra will fail.
+NOTE: If you are trying to test repositoy on [ScyllaDB](https://www.scylladb.com/), you also need to add to your enviroment `$ export USE_SCYLLA=true`, or the test that are specific to Cassandra will fail.
 
 ## License
 
