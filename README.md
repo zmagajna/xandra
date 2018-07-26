@@ -95,7 +95,7 @@ For now test are done on ScyllaDB version 2.1.
 
 Clone the repository and run `$ mix test` to make sure your setup is correct; you're going to need Cassandra running locally on its default port (`9042`) for tests to pass.
 
-NOTE: If you are trying to test repositoy on [ScyllaDB](https://www.scylladb.com/), you also need to add to your enviroment `$ export USE_SCYLLA=true`, or the test that are specific to Cassandra will fail.
+If you are trying to test this repository on [ScyllaDB][scylladb], you also need to add `$ export USE_SCYLLA=true` to your enviroment, otherwise the tests that are specific to Cassandra will fail.
 
 ## License
 
@@ -104,3 +104,4 @@ Xandra is released under the ISC license, see the [LICENSE](LICENSE) file.
 [documentation]: https://hexdocs.pm/xandra
 [cassandra]: http://cassandra.apache.org
 [production-use]: http://tech.forzafootball.com/blog/the-pursuit-of-instant-pushes
+[scylladb]: https://www.scylladb.com/
