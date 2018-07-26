@@ -14,7 +14,8 @@ env:
     - CASSANDRA_VERSION=2.2.8
     - CASSANDRA_VERSION=3.9 AUTHENTICATION=true
     - CASSANDRA_VERSION=3.9
-    - USE_SCYLLA=true SCYLLA_OPTS="--network-stack posix --enable-in-memory-data-store 1 --developer-mode 1" SCYLLA_OPTS_LOG="--log-to-stdout 1 --default-log-level info"
+    - SCYLLA_VERSION=2.1 USE_SCYLLA=true SCYLLA_OPTS="--developer-mode 1 --log-to-stdout 1 --default-log-level info"
+    - SCYLLA_VERSION=2.0 USE_SCYLLA=true SCYLLA_OPTS="--developer-mode 1 --log-to-stdout 1 --default-log-level info"
 
 matrix:
   include:
@@ -36,10 +37,11 @@ before_install:
        sh apache-cassandra-$CASSANDRA_VERSION/bin/cassandra
        for try in {1..12}; do (nodetool version > /dev/null 2>&1 && break) || sleep 5; done
      fi
-     if [ $USE_SCYLLA = true ]; then
-       sudo curl -o /etc/apt/sources.list.d/scylla.list -L http://repositories.scylladb.com/scylla/repo/77c7dfe41d1ef5dc59e939ca5fd01b32/ubuntu/scylladb-2.1-trusty.list
+
+     if [ $SCYLLA_VERSION ]; then
+       sudo curl -o /etc/apt/sources.list.d/scylla.list -L http://repositories.scylladb.com/scylla/repo/77c7dfe41d1ef5dc59e939ca5fd01b32/ubuntu/scylladb-$SCYLLA_VERSION-trusty.list
        sudo apt-key update
        sudo apt-get -qq update
        sudo apt-get install -y --allow-unauthenticated scylla-server
-       sudo /usr/bin/scylla --options-file /etc/scylla/scylla.yaml ${SCYLLA_OPTS} ${SCYLLA_OPTS_LOG} &
+       sudo /usr/bin/scylla --options-file /etc/scylla/scylla.yaml ${SCYLLA_OPTS} ${SCYLLA_OPTS_LOG} &> /tmp/scylla.log &
      fi
