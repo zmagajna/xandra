@@ -1,6 +1,6 @@
 ARG SCYLLA_VERSION=latest
 
-FROM scylladb/scylla:$SCYLLA_VERSION
+FROM scylladb/scylla:latest
 
 ARG AUTHENTICATION=false
 
