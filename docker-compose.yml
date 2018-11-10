@@ -28,6 +28,7 @@ services:
       args:
         - SCYLLA_VERSION
         - AUTHENTICATION
+    command: --developer-mode 1
     ports:
       - "9043:9042"
     container_name: scylla
