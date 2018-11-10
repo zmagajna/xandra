@@ -17,23 +17,18 @@ env:
   global:
     - DOCKER_COMPOSE_VERSION=1.22.0
   matrix:
-<<<<<<< HEAD
-    - CASSANDRA_VERSION=2.2.8 AUTHENTICATION=true
-    - CASSANDRA_VERSION=2.2.8
-    - CASSANDRA_VERSION=3.9 AUTHENTICATION=true
-    - CASSANDRA_VERSION=3.9
-    - SCYLLA_VERSION=2.1 USE_SCYLLA=true SCYLLA_OPTS="--developer-mode 1 --log-to-stdout 1 --default-log-level info"
-    - SCYLLA_VERSION=2.0 USE_SCYLLA=true SCYLLA_OPTS="--developer-mode 1 --log-to-stdout 1 --default-log-level info"
-=======
     - CASSANDRA_VERSION=2.2 AUTHENTICATION=true
     - CASSANDRA_VERSION=2.2
     - CASSANDRA_VERSION=3 AUTHENTICATION=true
     - CASSANDRA_VERSION=3
->>>>>>> master
+    - SCYLLA_VERSION=2.1 USE_SCYLLA=true 
+    - SCYLLA_VERSION=2.1 USE_SCYLLA=true AUTHENTICATION=true
+    - SCYLLA_VERSION=2.0 USE_SCYLLA=true 
+    - SCYLLA_VERSION=2.0 USE_SCYLLA=true AUTHENTICATION=true
 
 script:
   - docker-compose up -d
-  - ./test/docker/wait-for-cassandra.sh
+  - ./test/docker/healthcheck-dockers.sh
   - mix test
 
 jobs:
@@ -52,28 +47,6 @@ stages:
 # These steps are taken from: http://cassandra.apache.org/doc/latest/getting_started/installing.html#installation-from-binary-tarball-files.
 # Steps for Scylla taken from https://github.com/scylladb/gocqlx
 before_install:
-<<<<<<< HEAD
-  - |-
-     if [ $CASSANDRA_VERSION ]; then
-       java -version
-       wget https://archive.apache.org/dist/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz
-       tar -xzf apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz
-       if [ $AUTHENTICATION = true ]; then
-         sed -i -e "s/\(authenticator: \)AllowAllAuthenticator/\1PasswordAuthenticator/" apache-cassandra-$CASSANDRA_VERSION/conf/cassandra.yaml
-       fi
-       sh apache-cassandra-$CASSANDRA_VERSION/bin/cassandra
-       for try in {1..12}; do (nodetool version > /dev/null 2>&1 && break) || sleep 5; done
-     fi
-
-     if [ $SCYLLA_VERSION ]; then
-       sudo curl -o /etc/apt/sources.list.d/scylla.list -L http://repositories.scylladb.com/scylla/repo/77c7dfe41d1ef5dc59e939ca5fd01b32/ubuntu/scylladb-$SCYLLA_VERSION-trusty.list
-       sudo apt-key update
-       sudo apt-get -qq update
-       sudo apt-get install -y --allow-unauthenticated scylla-server
-       sudo /usr/bin/scylla --options-file /etc/scylla/scylla.yaml ${SCYLLA_OPTS} ${SCYLLA_OPTS_LOG} &> /tmp/scylla.log &
-     fi
-=======
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) > docker-compose
   - chmod +x docker-compose
   - docker-compose build
->>>>>>> master
