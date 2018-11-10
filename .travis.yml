@@ -17,19 +17,17 @@ env:
   global:
     - DOCKER_COMPOSE_VERSION=1.22.0
   matrix:
-    - CASSANDRA_VERSION=2.2 AUTHENTICATION=true
-    - CASSANDRA_VERSION=2.2
-    - CASSANDRA_VERSION=3 AUTHENTICATION=true
-    - CASSANDRA_VERSION=3
-    - SCYLLA_VERSION=2.1 USE_SCYLLA=true 
-    - SCYLLA_VERSION=2.1 USE_SCYLLA=true AUTHENTICATION=true
-    - SCYLLA_VERSION=2.0 USE_SCYLLA=true 
-    - SCYLLA_VERSION=2.0 USE_SCYLLA=true AUTHENTICATION=true
+    - CASSANDRA_VERSION=2.2 SCYLLA_VERSION=2.0 AUTHENTICATION=true
+    - CASSANDRA_VERSION=2.2 SCYLLA_VERSION=2.0
+    - CASSANDRA_VERSION=3 SCYLLA_VERSION=2.3 AUTHENTICATION=true
+    - CASSANDRA_VERSION=3 SCYLLA_VERSION=2.3
 
 script:
   - docker-compose up -d
   - ./test/docker/healthcheck-dockers.sh
-  - mix test
+  - mix compile
+  - mix test.cassandra
+  - mix test.scylla
 
 jobs:
   include:
