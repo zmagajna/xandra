@@ -4,22 +4,23 @@ defmodule ResultsTest do
   alias Xandra.{SchemaChange, SetKeyspace, Void}
 
   test "each possible result", %{conn: conn, keyspace: keyspace} do
-    assert {:ok, result} = Xandra.execute(conn, "USE #{keyspace}", [])
+    assert {:ok, result} = Xandra.execute(conn, "USE #{keyspace}")
     assert result == %SetKeyspace{keyspace: String.downcase(keyspace)}
 
     statement = "CREATE TABLE numbers (figure int PRIMARY KEY)"
-    assert {:ok, result} = Xandra.execute(conn, statement, [])
+    assert {:ok, result} = Xandra.execute(conn, statement)
+
     assert result == %SchemaChange{
-      effect: "CREATED",
-      options: %{
-        keyspace: String.downcase(keyspace),
-        subject: "numbers",
-      },
-      target: "TABLE",
-    }
+             effect: "CREATED",
+             options: %{
+               keyspace: String.downcase(keyspace),
+               subject: "numbers"
+             },
+             target: "TABLE"
+           }
 
     statement = "INSERT INTO numbers (figure) VALUES (123)"
-    assert {:ok, result} = Xandra.execute(conn, statement, [])
+    assert {:ok, result} = Xandra.execute(conn, statement)
     assert result == %Void{}
 
     statement = "SELECT * FROM numbers WHERE figure = ?"
