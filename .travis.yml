@@ -3,29 +3,56 @@ language: elixir
 dist: trusty
 sudo: required
 
-otp_release: 19.2
+services:
+  - docker
+
+otp_release:
+  - 19.2
+
 elixir:
-  - 1.3.4
-  - 1.4.0
+  - 1.4.5
+  - 1.7.3
 
 env:
+  global:
+    - DOCKER_COMPOSE_VERSION=1.22.0
   matrix:
+<<<<<<< HEAD
     - CASSANDRA_VERSION=2.2.8 AUTHENTICATION=true
     - CASSANDRA_VERSION=2.2.8
     - CASSANDRA_VERSION=3.9 AUTHENTICATION=true
     - CASSANDRA_VERSION=3.9
     - SCYLLA_VERSION=2.1 USE_SCYLLA=true SCYLLA_OPTS="--developer-mode 1 --log-to-stdout 1 --default-log-level info"
     - SCYLLA_VERSION=2.0 USE_SCYLLA=true SCYLLA_OPTS="--developer-mode 1 --log-to-stdout 1 --default-log-level info"
+=======
+    - CASSANDRA_VERSION=2.2 AUTHENTICATION=true
+    - CASSANDRA_VERSION=2.2
+    - CASSANDRA_VERSION=3 AUTHENTICATION=true
+    - CASSANDRA_VERSION=3
+>>>>>>> master
 
-matrix:
+script:
+  - docker-compose up -d
+  - ./test/docker/wait-for-cassandra.sh
+  - mix test
+
+jobs:
   include:
-    otp_release: 18.3
-    elixir: 1.4.0
-    env: CASSANDRA_VERSION=3.9
+    - stage: check formatted
+      script: mix format --check-formatted
+      otp_release: 19.2
+      elixir: 1.7.3
+      before_install: skip
+      sudo: false
+
+stages:
+  - check formatted
+  - test
 
 # These steps are taken from: http://cassandra.apache.org/doc/latest/getting_started/installing.html#installation-from-binary-tarball-files.
 # Steps for Scylla taken from https://github.com/scylladb/gocqlx
 before_install:
+<<<<<<< HEAD
   - |-
      if [ $CASSANDRA_VERSION ]; then
        java -version
@@ -45,3 +72,8 @@ before_install:
        sudo apt-get install -y --allow-unauthenticated scylla-server
        sudo /usr/bin/scylla --options-file /etc/scylla/scylla.yaml ${SCYLLA_OPTS} ${SCYLLA_OPTS_LOG} &> /tmp/scylla.log &
      fi
+=======
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) > docker-compose
+  - chmod +x docker-compose
+  - docker-compose build
+>>>>>>> master

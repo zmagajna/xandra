@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  cassandra:
+    build:
+      context: ./test/docker
+      dockerfile: Dockerfile.cassandra
+      args:
+        - CASSANDRA_VERSION
+        - AUTHENTICATION
+    ports:
+      - "9042:9042"
+    container_name: cassandra_test
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status"]
+      interval: 20s
+      timeout: 10s
+      retries: 12
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 50m
+
+  scylla:
+    build:
+      context: ./test/docker
+      dockerfile: Dockerfile.scylla
+      args:
+        - SCYLLA_VERSION
+        - AUTHENTICATION
+    ports:
+      - "9043:9042"
+    container_name: scylla_test
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status"]
+      interval: 20s
+      timeout: 10s
+      retries: 12
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 50m
