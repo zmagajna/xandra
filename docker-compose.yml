@@ -10,7 +10,6 @@ services:
         - AUTHENTICATION
     ports:
       - "9042:9042"
-    container_name: cassandra
     healthcheck:
       test: ["CMD-SHELL", "nodetool status"]
       interval: 20s
@@ -31,7 +30,6 @@ services:
     command: --developer-mode 1
     ports:
       - "9043:9042"
-    container_name: scylla
     healthcheck:
       test: ["CMD-SHELL", "nodetool status"]
       interval: 20s
