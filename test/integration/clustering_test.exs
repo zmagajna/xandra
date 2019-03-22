@@ -17,14 +17,14 @@ defmodule ClusteringTest do
     end
   end
 
-  test "basic interactions on Cassandra", %{keyspace: keyspace, port: port} do
+  test "basic interactions", %{keyspace: keyspace} do
     call_options = [pool: Xandra.Cluster]
     statement = "USE #{keyspace}"
 
     log =
       capture_log(fn ->
         start_options = [
-          nodes: ["127.0.0.1:#{port}", "127.0.0.1:#{port}", "127.0.0.2:#{port}"],
+          nodes: ["127.0.0.1", "127.0.0.1", "127.0.0.2"],
           name: TestCluster,
           load_balancing: :random
         ]
@@ -39,7 +39,7 @@ defmodule ClusteringTest do
     assert Xandra.execute!(TestCluster, statement, [], call_options)
   end
 
-  test "priority load balancing", %{start_options: start_options, keyspace: keyspace} do
+  test "priority load balancing", %{keyspace: keyspace, start_options: start_options} do
     call_options = [pool: Xandra.Cluster]
     start_options = [load_balancing: :priority] ++ start_options
     {:ok, cluster} = Xandra.start_link(call_options ++ start_options)
