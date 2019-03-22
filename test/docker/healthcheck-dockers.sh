@@ -7,7 +7,7 @@ for name in $(docker ps --format '{{.Names}}'); do
 			echo "Docker $name is up and running($STATUS)"
 			break
 		fi
-		>&2 echo "Docker $name is unavailable, waiting to start..."; 
+		>&2 echo "Docker $name is unavailable, waiting to start...";
 		sleep 3;
 	done
 done
